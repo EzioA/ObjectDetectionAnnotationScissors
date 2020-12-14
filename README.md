@@ -4,9 +4,9 @@
  ...when the images are tooooooo <font size=5>big</font>.
 
  For example, we are going to divide this image into 4 patches:  
- <center>![](https://github.com/EzioA/ObjectDetectionAnnotationScissors/blob/main/assets/panda_gt.png)</center>  
+ <center>![ ](https://github.com/EzioA/ObjectDetectionAnnotationScissors/blob/main/assets/panda_gt.png)</center>  
  and the first patch looks like this:  
- <center>![](https://github.com/EzioA/ObjectDetectionAnnotationScissors/blob/main/assets/panda_0_gt.png)</center>
+ <center>![ ](https://github.com/EzioA/ObjectDetectionAnnotationScissors/blob/main/assets/panda_0_gt.png)</center>
 
 
 # Usage
