@@ -23,7 +23,7 @@ dataset
     ├── images
     └── labels
 ```
-Now this script supports mode _**voc**_ and _**yolo**_. For more information, please type:
+Now this script supports mode _**voc**_ and _**yolo**_. For more information, use the help docs:
 ```
 $ python crop_image_and_objects.py --help
 ```
