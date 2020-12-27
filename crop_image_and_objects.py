@@ -241,8 +241,8 @@ def pre_process(root_dir, mode="voc", format="jpg", h_slice=1, w_slice=1):
 def crop_only(root_dir, format="jpg", h_slice=1, w_slice=1):
 	image_list = sum([glob.glob(f"{root_dir}/*.{_suffix}") for _suffix in suffix], [])
 
-	if not os.path.exists(os.path.join(root_dir, "images")):
-		os.makedirs(os.path.join(root_dir, "images"))
+	if not os.path.exists(os.path.join(root_dir, "cropped_images")):
+		os.makedirs(os.path.join(root_dir, "cropped_images"))
 
 	for image_path in image_list:
 		# Deprecated
@@ -268,7 +268,7 @@ def crop_only(root_dir, format="jpg", h_slice=1, w_slice=1):
 			sub_lty, sub_ltx = _lt
 			sub_rby, sub_rbx = _rb
 
-			sub_image_path = os.path.join(os.path.join(root_dir, "images"),
+			sub_image_path = os.path.join(os.path.join(root_dir, "cropped_images"),
 										  f"{os.path.splitext(os.path.basename(image_path))[0]}_{_i}.{format}")
 			sub_image = ToPILImage()(image[:, sub_lty:sub_rby, sub_ltx:sub_rbx])
 			sub_image.save(sub_image_path)
