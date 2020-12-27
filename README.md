@@ -29,5 +29,5 @@ $ python crop_image_and_objects.py --help
 ```
 
 # Update
-v0.2 Fix some bugs within VOC annotations.
+v0.2 Fix some bugs within VOC annotations. 
 v0.1 Raw version.
