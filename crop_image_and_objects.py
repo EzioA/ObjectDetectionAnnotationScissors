@@ -31,8 +31,9 @@ def prettyXml(element, indent, newline, level = 0):
 		prettyXml(subelement, indent, newline, level = level + 1)
 
 
-def crop_yolo(img_path, h_slice=1, w_slice=1):
-	img_suffix = os.path.splitext(img_path)[-1]
+def crop_yolo(img_path, format="jpg", h_slice=1, w_slice=1):
+	# Deprecated
+	# img_suffix = os.path.splitext(img_path)[-1]
 	label_path = os.path.join(os.path.dirname(img_path), os.path.splitext(os.path.basename(img_path))[0] + ".txt")
 	if not os.path.exists(label_path):
 		return
@@ -98,7 +99,7 @@ def crop_yolo(img_path, h_slice=1, w_slice=1):
 		if not os.path.exists(os.path.join(os.path.dirname(img_path), "yolo", "labels")):
 			os.makedirs(os.path.join(os.path.dirname(img_path), "yolo", "labels"))
 
-		sub_img_path = os.path.join(os.path.join(os.path.dirname(img_path), "yolo", "images"), f"{os.path.splitext(os.path.basename(img_path))[0]}_{_i}{img_suffix}")
+		sub_img_path = os.path.join(os.path.join(os.path.dirname(img_path), "yolo", "images"), f"{os.path.splitext(os.path.basename(img_path))[0]}_{_i}.{format}")
 		sub_label_path = os.path.join(os.path.join(os.path.dirname(img_path), "yolo", "labels"), f"{os.path.splitext(os.path.basename(img_path))[0]}_{_i}.txt")
 
 		sub_label = new_label[~np.any(_idx == 0, axis=1)]
@@ -110,12 +111,12 @@ def crop_yolo(img_path, h_slice=1, w_slice=1):
 		np.savetxt(sub_label_path, new_label[~np.any(_idx[:, 2:] < 1e-4, axis=1) & ~np.any(new_label[:, 3:] < 1e-4, axis=1)], fmt="%.05f")
 
 
-def crop_voc(image_path, h_slice=1, w_slice=1):
+def crop_voc(image_path, format="jpg", h_slice=1, w_slice=1):
 	label_path = os.path.join(os.path.dirname(image_path), os.path.splitext(os.path.basename(image_path))[0] + ".xml")
 	if not os.path.exists(label_path):
 		return
-
-	image_suffix = os.path.splitext(image_path)[-1]
+	# Deprecated
+	# image_suffix = os.path.splitext(image_path)[-1]
 
 	if not os.path.exists(os.path.join(os.path.dirname(image_path), "voc", "images")):
 		os.makedirs(os.path.join(os.path.dirname(image_path), "voc", "images"))
@@ -149,7 +150,7 @@ def crop_voc(image_path, h_slice=1, w_slice=1):
 		sub_height, sub_width = sub_rby - sub_lty, sub_rbx - sub_ltx
 
 		sub_image_path = os.path.join(os.path.join(os.path.dirname(image_path), "voc", "images"),
-									  f"{os.path.splitext(os.path.basename(image_path))[0]}_{_i}{image_suffix}")
+									  f"{os.path.splitext(os.path.basename(image_path))[0]}_{_i}.{format}")
 		sub_anno_path = os.path.join(os.path.join(os.path.dirname(image_path), "voc", "labels"),
 									 f"{os.path.splitext(os.path.basename(image_path))[0]}_{_i}.xml")
 		divided_objects[sub_image_path] = []
@@ -164,10 +165,11 @@ def crop_voc(image_path, h_slice=1, w_slice=1):
 
 			sub_box = np.copy(_box)
 
-			sub_box[0] = np.clip(sub_box[0], sub_ltx, sub_rbx)
-			sub_box[1] = np.clip(sub_box[1], sub_lty, sub_rby)
-			sub_box[2] = np.clip(sub_box[2], sub_ltx, sub_rbx)
-			sub_box[3] = np.clip(sub_box[3], sub_lty, sub_rby)
+			## make sure the sub_box is within [1, sub_size - 1]
+			sub_box[0] = np.clip(sub_box[0], sub_ltx + 1, sub_rbx - 1)
+			sub_box[1] = np.clip(sub_box[1], sub_lty + 1, sub_rby - 1)
+			sub_box[2] = np.clip(sub_box[2], sub_ltx + 1, sub_rbx - 1)
+			sub_box[3] = np.clip(sub_box[3], sub_lty + 1, sub_rby - 1)
 			delta_box = np.copy(sub_box)
 
 			delta_box[2] -= delta_box[0]
@@ -225,27 +227,69 @@ def crop_voc(image_path, h_slice=1, w_slice=1):
 			sub_xml.write(sub_anno_path, encoding="utf-8")
 
 
-def pre_process(root_dir, mode, h_slice=1, w_slice=1):
+def pre_process(root_dir, mode="voc", format="jpg", h_slice=1, w_slice=1):
 	image_list = sum([glob.glob(f"{root_dir}/*.{_suffix}") for _suffix in suffix], [])
 	for image_path in image_list:
 		if mode == "yolo":
-			crop_yolo(image_path, h_slice=h_slice, w_slice=w_slice)
+			crop_yolo(image_path, format=format, h_slice=h_slice, w_slice=w_slice)
 		elif mode == "voc":
-			crop_voc(image_path, h_slice=h_slice, w_slice=w_slice)
+			crop_voc(image_path, format=format, h_slice=h_slice, w_slice=w_slice)
 		else:
 			raise ValueError("Invalid mode, please check your input")
+
+
+def crop_only(root_dir, format="jpg", h_slice=1, w_slice=1):
+	image_list = sum([glob.glob(f"{root_dir}/*.{_suffix}") for _suffix in suffix], [])
+
+	if not os.path.exists(os.path.join(root_dir, "images")):
+		os.makedirs(os.path.join(root_dir, "images"))
+
+	for image_path in image_list:
+		# Deprecated
+		# image_suffix = os.path.splitext(image_path)[-1]
+		image = ToTensor()(Image.open(image_path))
+		_, h, w = image.shape
+
+		_h = h + 1 - h % h_slice
+		_w = w + 1 - w % w_slice
+		h_grid = np.arange(0, _h, h // h_slice)
+		w_grid = np.arange(0, _w, w // w_slice)
+
+		lt = []
+		rb = []
+		coor_slice = list(product(h_grid, w_grid))
+
+		for r in range(h_slice):
+			for i in range(r * (w_slice + 1), r * (w_slice + 1) + w_slice):
+				lt.append(coor_slice[i])
+				rb.append(coor_slice[i + w_slice + 2])
+
+		for _i, (_lt, _rb) in enumerate(list(zip(lt, rb))):
+			sub_lty, sub_ltx = _lt
+			sub_rby, sub_rbx = _rb
+
+			sub_image_path = os.path.join(os.path.join(root_dir, "images"),
+										  f"{os.path.splitext(os.path.basename(image_path))[0]}_{_i}.{format}")
+			sub_image = ToPILImage()(image[:, sub_lty:sub_rby, sub_ltx:sub_rbx])
+			sub_image.save(sub_image_path)
+
 
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--data_dir", type=str, default="dataset", help="the directory containing all images and annotations")
 	parser.add_argument("--mode", type=str, default="voc", help="the annotation protocol u use")
+	parser.add_argument("--format", type=str, default="jpg", help="the format of sub images u want")
 	parser.add_argument("--h_slice", type=int, default=1, help="how many rows u want")
 	parser.add_argument("--w_slice", type=int, default=1, help="how many cols u want")
+	parser.add_argument("--crop_only", action="store_true", help="crop images only")
 
 	opt = parser.parse_args()
 	root_dir = os.path.abspath(opt.data_dir)
 
-	pre_process(root_dir, mode=opt.mode, h_slice=opt.h_slice, w_slice=opt.w_slice)
+	if opt.crop_only:
+		crop_only(root_dir, format=opt.format, h_slice=opt.h_slice, w_slice=opt.w_slice)
+	else:
+		pre_process(root_dir, mode=opt.mode, format=opt.format, h_slice=opt.h_slice, w_slice=opt.w_slice)
 
 
