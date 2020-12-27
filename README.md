@@ -13,9 +13,11 @@
 ```
 $ python crop_image_and_objects.py --data_dir dataset --mode voc --h_slice 2 --w slice 2
 ```
-The directory _**dataset**_ contains all the images and corresponding annotations, and the script will create directories recursively as below.
+The directory _**dataset**_ contains all the images and corresponding annotations, and the script will create directories recursively as below.  
+The directory _**cropped\_images**_ contains all the cropped images for the usage, such as inference. If u need these images, use argument _**crop\_only**_.
 ```
 dataset
+├── cropped_images
 ├── voc
 │   ├── images
 │   └── labels
@@ -29,5 +31,5 @@ $ python crop_image_and_objects.py --help
 ```
 
 # Update
-v0.2 Fix some bugs within VOC annotations.  
+v0.2 Fix some bugs within VOC annotations, and add the argument _**crop\_only**_.  
 v0.1 Raw version.
